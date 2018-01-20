@@ -1,3 +1,12 @@
+--------------------------------------------------------------------------
+--
+-- Copyright: (c) Javier López Durá
+-- License: BSD3
+--
+-- Maintainer: Javier López Durá <linux.kitten@gmail.com>
+--
+--------------------------------------------------------------------------
+
 
 module Data.Aeson.JsonUtils
   ( parseListOfKeyObject
