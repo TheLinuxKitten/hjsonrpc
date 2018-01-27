@@ -47,7 +47,7 @@ type JsonRpcMethod = Text
 -- | ID de la petición
 data JsonRpcId = JsonRpcIdInt { idInt :: Int }
                | JsonRpcIdTxt { idTxt :: Text }
-               deriving (Show)
+               deriving (Eq, Show)
 
 instance Enum JsonRpcId where
   toEnum = JsonRpcIdInt
@@ -64,7 +64,7 @@ instance FromJSON JsonRpcId where
   parseJSON _ = mzero
 
 -- | Versión
-data JsonRpcVersion = JsonRpcV1 | JsonRpcV2 deriving (Show)
+data JsonRpcVersion = JsonRpcV1 | JsonRpcV2 deriving (Eq, Show)
 
 parseVersion :: Object -> Parser JsonRpcVersion
 parseVersion o = do
@@ -83,7 +83,7 @@ data JsonRpcRequest = JsonRpcRequest
                         , _method :: JsonRpcMethod
                         , _params :: Value
                         }
-                    deriving (Show)
+                    deriving (Eq, Show)
 
 jr2 :: Pair
 jr2 = "jsonrpc" .= ("2.0" :: Text)
@@ -140,7 +140,7 @@ data JsonRpcError = JsonRpcErrorObject
                   | JsonRpcErrorValue
                       { _data :: Value
                       }
-                  deriving (Show)
+                  deriving (Eq, Show)
 
 instance ToJSON JsonRpcError where
   toJSON (JsonRpcErrorObject c m d) = object $
@@ -158,6 +158,7 @@ instance FromJSON JsonRpcError where
        <*> o .: "message"
        <*> o .:? "data" .!= Null
       p2 = return $ JsonRpcErrorValue v
+  parseJSON _ = fail "FromJSON JsonRpcError"
 
 data JsonRpcResponse = JsonRpcResponseResult
                          { _responseVersion :: JsonRpcVersion
@@ -173,7 +174,7 @@ data JsonRpcResponse = JsonRpcResponseResult
                          { _responseVersion :: JsonRpcVersion
                          , _error :: JsonRpcError
                          }
-                     deriving (Show)
+                     deriving (Eq, Show)
 
 instance ToJSON JsonRpcResponse where
   toJSON (JsonRpcResponseResult JsonRpcV1 r i) = object
@@ -190,7 +191,7 @@ instance ToJSON JsonRpcResponse where
     [jr2, "id" .= Null, "error" .= e]
 
 instance FromJSON JsonRpcResponse where
-  parseJSON = withObject "response" $ \o -> do
+  parseJSON (Object o) = do
     v <- parseVersion o
     i <- o .:? "id"
     r <- o .:? "result" .!= Null
@@ -206,6 +207,7 @@ instance FromJSON JsonRpcResponse where
       Left e -> case i of
         Just i' -> return $ JsonRpcResponseError v e i'
         Nothing -> return $ JsonRpcOrphanError v e
+  parseJSON _ = fail "FromJSON JsonRpcResponse"
 
 -- | Decodificar Response
 jsonRpcDecodeResponse :: LBS.ByteString -> JsonRpcResp JsonRpcResponse
