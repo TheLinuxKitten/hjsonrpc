@@ -23,6 +23,7 @@ module Network.JsonRpcConn
   , jsonRpcLibVer
   , fromJsonRpcT
   , runJsonRpcConnT
+  , LogLevel(..)
   , filterLoggerLogLevel
   , liftJsonRpcConnT
   , liftJsonRpcConnTIO
